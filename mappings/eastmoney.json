@@ -1,0 +1,18 @@
+{
+  "name": "eastmoney",
+  "description": "东方财富（天天基金/证券）交割单导出",
+  "columns": {
+    "date": "成交时间",
+    "code": "股票代码",
+    "side": "操作",
+    "price": "成交均价",
+    "qty": "成交股数",
+    "amount": "成交金额",
+    "fee": "手续费"
+  },
+  "date_format": "%Y-%m-%d",
+  "side_values": {
+    "buy": ["买入", "证券买入"],
+    "sell": ["卖出", "证券卖出"]
+  }
+}

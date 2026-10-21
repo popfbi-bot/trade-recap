@@ -1,0 +1,18 @@
+{
+  "name": "generic-cn",
+  "description": "通用 A 股交割单（多数券商可用的中性列名）",
+  "columns": {
+    "date": "成交日期",
+    "code": "证券代码",
+    "side": "买卖标志",
+    "price": "成交价格",
+    "qty": "成交数量",
+    "amount": "成交金额",
+    "fee": "手续费"
+  },
+  "date_format": "%Y-%m-%d",
+  "side_values": {
+    "buy": ["买入", "买", "证券买入", "BUY", "B"],
+    "sell": ["卖出", "卖", "证券卖出", "SELL", "S"]
+  }
+}

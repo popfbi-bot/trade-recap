@@ -1,0 +1,18 @@
+{
+  "name": "huatai",
+  "description": "华泰证券（涨乐财富通）交割单导出",
+  "columns": {
+    "date": "发生日期",
+    "code": "证券代码",
+    "side": "摘要",
+    "price": "成交价格",
+    "qty": "成交数量",
+    "amount": "成交金额",
+    "fee": "手续费"
+  },
+  "date_format": "%Y%m%d",
+  "side_values": {
+    "buy": ["证券买入", "买入"],
+    "sell": ["证券卖出", "卖出"]
+  }
+}
