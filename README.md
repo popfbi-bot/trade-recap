@@ -4,9 +4,9 @@
 
 券商 App 的「年度账单」只告诉你总盈亏，不告诉你**你错在哪**。trade-recap 用 FIFO 把买卖配成完整交易，再算出胜率、盈亏比、盈亏归因和行为诊断。它读本地 CSV，只写 `report.md` / `report.html` 两个文件，不联网。
 
-![report.html 截图占位](docs/report-html.png)
+![trade-recap 报告首屏：一句话结论 + 四个核心数字 + 最赚最亏榜 + 行为诊断](docs/report-html.png)
 
-> 截图占位：本地跑 `python cli.py recap fixtures/synthetic.csv` 后，用浏览器打开 `report.html` 截图，存为 `docs/report-html.png` 替换本行图片。示例产出的纯文本版在 `examples/report.md`。
+> 上图是 `python cli.py recap fixtures/synthetic.csv` 生成的 `report.html` 真实截图（含合成数据的全部小节）。纯文本版见 `examples/report.md`。
 
 ## 快速开始
 
