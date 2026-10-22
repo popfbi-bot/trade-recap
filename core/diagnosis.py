@@ -104,10 +104,10 @@ def diagnose(m: dict, conc: dict) -> list:
         {
             "key": "cost_erosion",
             "title": "成本侵蚀",
-            "formula": "交易费用 / 毛盈利 > 20%",
+            "formula": "交易费用 / 毛盈利 net_win_sum > 20%",
             "value": f"{cr * 100:.1f}%" if cr is not None else "不适用",
             "detail": (
-                f"费用合计 {m['total_fee']}，毛盈利 {m['gross_profit']}"
+                f"费用合计 {m['total_fee']}，毛盈利 net_win_sum {m['net_win_sum']}"
                 if cr is not None
                 else "毛盈利不大于 0，比率无意义"
             ),

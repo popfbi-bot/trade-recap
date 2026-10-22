@@ -115,11 +115,17 @@ class SyntheticMetricsTest(unittest.TestCase):
         self.assertEqual(rows[2][1]["count"], 2)
 
     def test_best_and_worst_three(self):
-        # 口径：最赚 / 最亏各取「净盈亏排序的前 3 笔」，不按盈亏符号筛选。
-        # 最赚：188.80 > 89.50 > 89.40
-        # 最亏：-109.50 < 89.40 < 89.50（不足 3 笔亏损时也照 3 条输出，读者自己看得见只有一笔亏）
+        # 口径（Issue #4 修正后）：先按净盈亏符号过滤，再各取前 3 笔；不足 3 笔就有几笔列几笔。
+        # 最赚（仅 net_pnl > 0）：188.80 > 89.50 > 89.40
+        # 最亏（仅 net_pnl < 0）：只有 B 一笔 -109.50，不再拿盈利笔填坑
         self.assertEqual([t.net_pnl for t in self.m["best"]], [D("188.80"), D("89.50"), D("89.40")])
-        self.assertEqual([t.net_pnl for t in self.m["worst"]], [D("-109.50"), D("89.40"), D("89.50")])
+        self.assertEqual([t.net_pnl for t in self.m["worst"]], [D("-109.50")])
+
+    def test_gross_profit_is_net_win_sum(self):
+        # 毛盈利改名 net_win_sum，口径 = 盈利笔净盈亏之和（367.70），不是毛额（400.00）
+        self.assertEqual(self.m["net_win_sum"], D("367.70"))
+        self.assertEqual(self.m["net_win_gross_sum"], D("400.00"))
+        self.assertEqual(self.m["gross_profit"], self.m["net_win_sum"])
 
     def test_concentration(self):
         # 总买入 = 1000*4 = 4000；单标的买入：600000 1000，000001 2000，600519 1000

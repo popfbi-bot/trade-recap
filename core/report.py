@@ -99,6 +99,24 @@ def _multi(items) -> str:
     return "、".join(items) if items else "无"
 
 
+BEST_EMPTY = "本期没有盈利交易"
+WORST_EMPTY = "本期没有亏损交易"
+
+
+def _rank_section(L, title, rows, mk: Masker, empty_text: str) -> None:
+    """最赚 / 最亏榜单。榜单已按净盈亏符号过滤，空就是真的没有，不留空表。"""
+    L.append(f"## {title}")
+    L.append("")
+    if not rows:
+        L.append(empty_text)
+        L.append("")
+        return
+    L.append("| 代码 | 买卖日期 | 持有天数 | 数量 | 净盈亏 | 毛盈亏 |")
+    L.append("|---|---|---|---|---|---|")
+    L.extend(_trade_lines(rows, mk))
+    L.append("")
+
+
 def _trade_lines(rows, mk: Masker) -> list:
     out = []
     for t in rows:
@@ -132,24 +150,16 @@ def _markdown(ctx) -> str:
     L.append("|---|---|---|")
     L.append(f"| 平均盈利额 | 盈利笔净盈亏的算术平均 | {mk.money(m['avg_win'])} |")
     L.append(f"| 平均亏损额 | 亏损笔净盈亏的算术平均 | {mk.money(m['avg_loss'])} |")
-    L.append(f"| 毛盈利 | 所有盈利笔的净盈亏之和 | {mk.total(m['gross_profit'])} |")
+    L.append(f"| 毛盈利 `net_win_sum` | 所有**盈利笔**的**净盈亏**之和（已扣两端费用，不含亏损笔；"
+             f"仅盈利笔毛盈亏之和为 {mk.total(m['net_win_gross_sum'])}） | {mk.total(m['net_win_sum'])} |")
     L.append(f"| 交易费用合计 | 手续费 + 印花税合计 | {mk.total(m['total_fee'])} |")
     cost_ratio = "不适用" if m["cost_ratio"] is None else _pct(m["cost_ratio"])
-    L.append(f"| 交易成本占比 | 交易费用合计 / 毛盈利（毛盈利为负时不算比率） | {cost_ratio} |")
+    L.append(f"| 交易成本占比 | 交易费用合计 / 毛盈利 `net_win_sum`（分母是净额而非毛额，毛盈利 ≤ 0 时不算比率）"
+             f" | {cost_ratio} |")
     L.append(f"| 月均完整交易数 | 完整交易数 / 覆盖月份数 | {_ratio(m['trades_per_month'], 1)} 笔/月 |")
     L.append("")
-    L.append("## 最赚的三笔")
-    L.append("")
-    L.append("| 代码 | 买卖日期 | 持有天数 | 数量 | 净盈亏 | 毛盈亏 |")
-    L.append("|---|---|---|---|---|---|")
-    L.extend(_trade_lines(ctx["best"], mk))
-    L.append("")
-    L.append("## 最亏的三笔")
-    L.append("")
-    L.append("| 代码 | 买卖日期 | 持有天数 | 数量 | 净盈亏 | 毛盈亏 |")
-    L.append("|---|---|---|---|---|---|")
-    L.extend(_trade_lines(ctx["worst"], mk))
-    L.append("")
+    _rank_section(L, "最赚的三笔（净盈亏 > 0）", ctx["best"], mk, BEST_EMPTY)
+    _rank_section(L, "最亏的三笔（净盈亏 < 0）", ctx["worst"], mk, WORST_EMPTY)
     L.append("## 归因 · 按标的（盈亏绝对值前 10）")
     L.append("")
     L.append("| 代码 | 完整交易笔数 | 净盈亏 |")
@@ -256,6 +266,15 @@ def _html(ctx) -> str:
         for i in ctx["items"]
     )
 
+    def rank_table(rows, empty_text):
+        """榜单空时不留空表，直接说明「本期没有」。"""
+        if not rows:
+            return f'<p class="meta">{e(empty_text)}</p>'
+        return (
+            "<table><tr><th>代码</th><th>买卖日期</th><th>持有天数</th><th>数量</th><th>净盈亏</th></tr>"
+            f"{trade_rows(rows)}</table>"
+        )
+
     def trade_rows(rows):
         return "".join(
             "<tr>"
@@ -301,13 +320,11 @@ def _html(ctx) -> str:
 <div class="verdict">{e(ctx['one_liner'])}</div>
 <div class="cards">{card_html}</div>
 
-<h2>最赚的 3 笔</h2>
-<table><tr><th>代码</th><th>买卖日期</th><th>持有天数</th><th>数量</th><th>净盈亏</th></tr>
-{trade_rows(ctx['best'])}</table>
+<h2>最赚的 3 笔（净盈亏 &gt; 0）</h2>
+{rank_table(ctx['best'], BEST_EMPTY)}
 
-<h2>最亏的 3 笔</h2>
-<table><tr><th>代码</th><th>买卖日期</th><th>持有天数</th><th>数量</th><th>净盈亏</th></tr>
-{trade_rows(ctx['worst'])}</table>
+<h2>最亏的 3 笔（净盈亏 &lt; 0）</h2>
+{rank_table(ctx['worst'], WORST_EMPTY)}
 
 <h2>归因 · 按标的（前 10）</h2>
 <table><tr><th>代码</th><th>笔数</th><th>净盈亏</th></tr>{code_rows}</table>
@@ -329,7 +346,8 @@ def _html(ctx) -> str:
 <tr><th>配对算法</th><td>FIFO；剩余未平仓批次 {len(ctx['open_lots'])} 个，不计入任何指标</td></tr>
 <tr><th>平均持仓天数</th><td class="num">{_ratio(m['avg_hold_days'], 1)} 天</td></tr>
 <tr><th>交易费用合计</th><td class="num">{e(mk.total(m['total_fee']))}</td></tr>
-<tr><th>交易成本占比</th><td class="num">{'不适用' if m['cost_ratio'] is None else _pct(m['cost_ratio'])}</td></tr>
+<tr><th>毛盈利 net_win_sum</th><td class="num">{e(mk.total(m['net_win_sum']))}</td></tr>
+<tr><th>交易成本占比</th><td class="num">{'不适用' if m['cost_ratio'] is None else _pct(m['cost_ratio'])}（费用合计 / 毛盈利，分母为盈利笔净额）</td></tr>
 </table>
 {f'<ul>{warnings}</ul>' if warnings else ''}
 
