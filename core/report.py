@@ -226,10 +226,14 @@ table{width:100%;border-collapse:collapse;font-size:13.5px}
 th,td{text-align:left;padding:8px 10px;border-bottom:1px solid #232a37}
 th{color:#8b93a1;font-weight:500}
 td.num{font-variant-numeric:tabular-nums}
+/* 配色语义（issue #10）：盈利红、亏损绿——与 life-kline 的「阳红阴绿」统一，
+   也符合 A 股「红涨绿跌」的直觉。
+   .hit 命中诊断 = 橙（这条要改）  .ok 未命中 = 灰蓝（无事发生）
+   别把 .ok 改回绿色：绿色已经表示「亏损」，一个颜色只能有一个意思。 */
 .hit{color:#ff8a5c;font-weight:600}
-.ok{color:#5fd08a}
-.pos{color:#5fd08a}
-.neg{color:#ff6b6b}
+.ok{color:#8b93a1}
+.pos{color:#ff6b6b}
+.neg{color:#5fd08a}
 .footer{margin-top:32px;padding-top:16px;border-top:1px solid #232a37;color:#7b8391;font-size:12.5px}
 @media(max-width:640px){.cards{grid-template-columns:repeat(2,1fr)}body{padding:18px}}
 """

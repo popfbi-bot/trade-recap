@@ -8,6 +8,9 @@
 
 > 上图是 `python cli.py recap fixtures/synthetic.csv` 生成的 `report.html` 真实截图（含合成数据的全部小节）。纯文本版见 `examples/report.md`。
 
+> 报告里的颜色跟 A 股一个习惯：**红是赚钱，绿是亏钱**。
+> 行为诊断里橙色是「这条要改」，灰蓝色是「这条没事」。
+
 ## 快速开始
 
 ```bash

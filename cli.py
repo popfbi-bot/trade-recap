@@ -121,8 +121,21 @@ def cmd_recap(args) -> int:
 
 
 def _write(path: str, content: str) -> None:
-    with open(path, "w", encoding="utf-8") as fh:
-        fh.write(content)
+    try:
+        # newline=""：不把 \n 转成 \r\n。Windows 上默认的文本模式会把整个文件
+        # 翻成 CRLF，生成的产物跟仓库里的版本行尾不一致，diff 会变成整文件变化。
+        with open(path, "w", encoding="utf-8", newline="") as fh:
+            fh.write(content)
+    except FileNotFoundError:
+        # 典型场景：--out 指向了一个还不存在的目录。
+        # 裸 FileNotFoundError 的 traceback 对用户没有意义，给一句能照做的话。
+        parent = os.path.dirname(os.path.abspath(path))
+        raise RecapError(
+            f"输出路径的目录不存在：{parent}\n"
+            f"  先创建这个目录，或把 --out 换到一个已存在的目录。"
+        ) from None
+    except OSError as exc:
+        raise RecapError(f"写文件失败：{path}（{exc.strerror or exc}）") from None
     print(f"已写入 {path}")
 
 
